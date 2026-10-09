@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CrazyZoo.Core/CrazyZoo.Core.csproj" />
+  <Project Path="CrazyZoo.WpfApp/CrazyZoo.WpfApp.csproj" />
+</Solution>
