@@ -84,6 +84,7 @@
                         <ComboBoxItem Content="Giraffe"/>
                         <ComboBoxItem Content="Hippo"/>
                         <ComboBoxItem Content="Penguin"/>
+                        <ComboBoxItem Content="Monkey"/>
 
                     </ComboBox>
 
