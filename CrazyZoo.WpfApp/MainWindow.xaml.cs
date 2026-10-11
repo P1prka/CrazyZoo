@@ -58,9 +58,13 @@ public partial class MainWindow : Window
             {
                 animal = new Hippo(name, energy);
             }
-            else
+            else if (animalType == "Penguin")
             {
                 animal = new Penguin(name, energy);
+            }
+            else
+            {
+                animal = new Monkey(name, energy);
             }
 
             animals.Add(animal);
