@@ -1,197 +1,243 @@
 ﻿<Window x:Class="CrazyZoo.WpfApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Crazy Zoo"
-        Height="650"
-        Width="900"
+        Title="Crazy Zoo - Vol.2"
+        Height="720"
+        Width="1080"
+        MinHeight="620"
+        MinWidth="900"
         WindowStartupLocation="CenterScreen"
-        Background="#F3F4F6">
+        Background="#F3F4F6"
+        FontFamily="Segoe UI">
 
     <Window.Resources>
-
-        <Style x:Key="MainButtonStyle"
+        <Style x:Key="ActionButtonStyle"
                TargetType="Button">
-
-            <Setter Property="Height"
-                    Value="36"/>
-
-            <Setter Property="Margin"
-                    Value="0,0,8,8"/>
-
-            <Setter Property="Padding"
-                    Value="12,5"/>
-
-            <Setter Property="FontSize"
-                    Value="14"/>
-
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="#E5E7EB"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
         </Style>
-
     </Window.Resources>
 
-    <Grid Margin="25">
-
+    <Grid Margin="24">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
-            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="330"/>
+            <ColumnDefinition Width="18"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         
-        <StackPanel Grid.Column="0">
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock Text="Crazy Zoo🐾"
-                       FontSize="30"
-                       FontWeight="Bold"
-                       Margin="0,0,0,5"/>
+            <StackPanel Grid.Row="0"
+                        Margin="0,0,0,16">
+                <TextBlock Text="Crazy Zoo"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Foreground="#1F2937"/>
 
-            <TextBlock Text="Create your own unusual zoo"
-                       Foreground="Gray"
-                       Margin="0,0,0,20"/>
+                <TextBlock Text="Vol.2 - Generics, LINQ, Events, MVVM"
+                           Foreground="#6B7280"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
 
-            <Border Background="White"
-                    CornerRadius="8"
+            
+            <Border Grid.Row="1"
+                    Background="White"
+                    CornerRadius="12"
                     Padding="18"
-                    Margin="0,0,0,15">
+                    Margin="0,0,0,14">
 
                 <StackPanel>
-
                     <TextBlock Text="Add animal"
-                               FontSize="18"
+                               FontSize="19"
                                FontWeight="Bold"
-                               Margin="0,0,0,15"/>
-
-                    <TextBlock Text="Name:"/>
-
-                    <TextBox x:Name="NameTextBox"
-                             Height="30"
-                             Margin="0,5,0,12"/>
-
-                    <TextBlock Text="Energy:"/>
-
-                    <TextBox x:Name="EnergyTextBox"
-                             Height="30"
-                             Text="50"
-                             Margin="0,5,0,12"/>
+                               Margin="0,0,0,14"/>
 
                     <TextBlock Text="Animal type:"/>
 
-                    <ComboBox x:Name="AnimalTypeComboBox"
-                              Height="30"
-                              Margin="0,5,0,15">
+                    <ComboBox Height="32"
+                              Margin="0,5,0,12"
+                              ItemsSource="{Binding AnimalTypes}"
+                              SelectedItem="{Binding SelectedType, Mode=TwoWay}"/>
 
-                        <ComboBoxItem Content="Lion"/>
-                        <ComboBoxItem Content="Zebra"/>
-                        <ComboBoxItem Content="Giraffe"/>
-                        <ComboBoxItem Content="Hippo"/>
-                        <ComboBoxItem Content="Penguin"/>
-                        <ComboBoxItem Content="Monkey"/>
+                    <TextBlock Text="Name:"/>
 
-                    </ComboBox>
+                    <TextBox Height="32"
+                             Margin="0,5,0,12"
+                             Text="{Binding AnimalName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Text="Energy (0-100):"/>
+
+                    <TextBox Height="32"
+                             Margin="0,5,0,14"
+                             Text="{Binding EnergyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <Button Content="Add animal"
-                            Style="{StaticResource MainButtonStyle}"
-                            Click="AddAnimal_Click"/>
-
+                            Height="38"
+                            FontWeight="SemiBold"
+                            Background="#C7E9DD"
+                            BorderBrush="#A7D8C8"
+                            Command="{Binding AddCommand}"/>
                 </StackPanel>
-
             </Border>
 
-            <TextBlock Text="Animals"
-                       FontWeight="Bold"
-                       Margin="0,0,0,5"/>
+          
+            <Border Grid.Row="2"
+                    Background="White"
+                    CornerRadius="12"
+                    Padding="18">
 
-            <ListBox x:Name="AnimalListBox"
-                     Height="250"
-                     SelectionChanged="AnimalListBox_SelectionChanged"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        </StackPanel>
-
-        
-        <StackPanel Grid.Column="2">
-
-            <Border Background="White"
-                    CornerRadius="8"
-                    Padding="20"
-                    Margin="0,0,0,15">
-
-                <StackPanel>
-
-                    <TextBlock Text="Selected animal"
-                               FontSize="20"
+                    <TextBlock Grid.Row="0"
+                               Text="Animals"
+                               FontSize="19"
                                FontWeight="Bold"
-                               Margin="0,0,0,15"/>
+                               Margin="0,0,0,12"/>
 
-                    <TextBlock x:Name="SelectedAnimalTextBlock"
-                               Text="No animal selected."
-                               FontSize="17"
-                               Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="1"
+                               Text="Search by name:"
+                               Margin="0,0,0,5"/>
 
-                    <TextBlock Text="Energy⚡"
-                               FontWeight="Bold"/>
+                    <TextBox Grid.Row="2"
+                             Height="30"
+                             Margin="0,0,0,10"
+                             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <ProgressBar x:Name="EnergyProgressBar"
-                                 Minimum="0"
-                                 Maximum="100"
-                                 Value="0"
-                                 Height="22"
-                                 Margin="0,5,0,5"/>
+                    <ComboBox Grid.Row="3"
+                              Height="30"
+                              Margin="0,0,0,12"
+                              ItemsSource="{Binding SortOptions}"
+                              SelectedItem="{Binding SortMode, Mode=TwoWay}"/>
 
-                    <TextBlock x:Name="EnergyTextBlock"
-                               Text="0 / 100"
-                               Margin="0,0,0,20"/>
+                    <ListBox Grid.Row="4"
+                             MinHeight="70"
+                             BorderBrush="#E5E7EB"
+                             ItemsSource="{Binding VisibleAnimals}"
+                             SelectedItem="{Binding SelectedAnimal, Mode=TwoWay}"/>
 
-                    <WrapPanel>
-
-                        <Button Content="Normal action😊"
-                                Style="{StaticResource MainButtonStyle}"
-                                Click="NormalAction_Click"/>
-
-                        <Button Content="Crazy action🤪"
-                                Style="{StaticResource MainButtonStyle}"
-                                Click="CrazyAction_Click"/>
-
-                        <Button x:Name="SwimButton"
-                                Content="Swim🌊"
-                                Style="{StaticResource MainButtonStyle}"
-                                Click="Swim_Click"/>
-
-                        <Button x:Name="PerformButton"
-                                Content="Perform🎉"
-                                Style="{StaticResource MainButtonStyle}"
-                                Click="Perform_Click"/>
-
-                        <Button Content="Remove"
-                                Style="{StaticResource MainButtonStyle}"
-                                Click="Remove_Click"/>
-
-                        <Button Content="Clear log"
-                                Style="{StaticResource MainButtonStyle}"
-                                Click="ClearLog_Click"/>
-                    </WrapPanel>
-
-                </StackPanel>
-
+                    <TextBlock Grid.Row="5"
+                               Text="{Binding StatisticsText}"
+                               TextWrapping="Wrap"
+                               Foreground="#4B5563"
+                               Margin="0,12,0,0"/>
+                </Grid>
             </Border>
+        </Grid>
 
-            <Border Background="White"
-                    CornerRadius="8"
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="14"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+    
+            <Border Grid.Row="0"
+                    Background="White"
+                    CornerRadius="12"
                     Padding="20">
 
                 <StackPanel>
-
-                    <TextBlock Text="Action log"
-                               FontSize="20"
+                    <TextBlock Text="Selected animal"
+                               FontSize="21"
                                FontWeight="Bold"
-                               Margin="0,0,0,10"/>
+                               Margin="0,0,0,15"/>
 
-                    <ListBox x:Name="LogListBox"
-                             Height="250"/>
+                    <TextBlock Text="{Binding SelectedDescription}"
+                               FontSize="17"
+                               Margin="0,0,0,16"/>
 
+                    <TextBlock Text="Energy"
+                               FontWeight="SemiBold"/>
+
+
+                    <ProgressBar Minimum="0"
+                                 Maximum="100"
+                                 Height="22"
+                                 Margin="0,7,0,6"
+                                 Value="{Binding SelectedEnergy, Mode=OneWay}"/>    
+
+
+                    <TextBlock Text="{Binding SelectedEnergyText}"
+                               Foreground="#6B7280"
+                               Margin="0,0,0,20"/>
+
+                    <WrapPanel>
+                        <Button Content="Normal action"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Command="{Binding NormalCommand}"/>
+
+                        <Button Content="Crazy action"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Command="{Binding CrazyCommand}"/>
+
+                        <Button Content="Swim"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Command="{Binding SwimCommand}"/>
+
+                        <Button Content="Perform"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Command="{Binding PerformCommand}"/>
+
+                        <Button Content="Remove animal"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Background="#FCE0E0"
+                                Command="{Binding RemoveCommand}"/>
+                    </WrapPanel>
                 </StackPanel>
-
             </Border>
 
-        </StackPanel>
 
+            <Border Grid.Row="2"
+                    Background="White"
+                    CornerRadius="12"
+                    Padding="20">
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0"
+                               Margin="0,0,0,14">
+
+                        <Button DockPanel.Dock="Right"
+                                Content="Clear log"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Margin="8,0,0,0"
+                                Command="{Binding ClearLogCommand}"/>
+
+                        <TextBlock Text="Event log"
+                                   FontSize="21"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding LogMessages}"
+                             BorderThickness="0"
+                             FontSize="13"/>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

@@ -38,7 +38,8 @@ public class Zebra : Animal, IPerformer
             return $"{Name} is too tired for an adventure.";
         }
 
-        return $"{Name} suddenly plans a huge adventure outside the zoo.";
+        return FinishCrazyAction(
+            $"{Name} suddenly plans a huge adventure outside the zoo.");
     }
 
 }

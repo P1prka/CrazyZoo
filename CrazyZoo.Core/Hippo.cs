@@ -48,6 +48,7 @@ public class Hippo : Animal, ISwimmable, IPerformer
             return $"{Name} is too tired for a crazy action.";
         }
 
-        return $"{Name} jumps into the pool and splashes everyone nearby.";
+        return FinishCrazyAction(
+            $"{Name} jumps into the pool and splashes everyone nearby.");
     }
 }

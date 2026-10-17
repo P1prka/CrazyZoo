@@ -39,7 +39,8 @@ public class Penguin : Animal, ISwimmable
             return $"{Name} is too tired for a secret operation.";
         }
 
-        return $"{Name} starts a top-secret zoo operation.";
+        return FinishCrazyAction(
+            $"{Name} starts a top-secret zoo operation.");
     }
 }
 

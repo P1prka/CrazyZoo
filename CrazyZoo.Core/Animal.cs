@@ -50,6 +50,79 @@ public abstract class Animal
         Energy = newEnergy;
     }
 
+
+    internal event EventHandler<LogMessageEventArgs>? MessageCreated;
+
+    internal event EventHandler<AnimalEventArgs>? CrazyActionFinished;
+
+    internal void OnAnimalAdded(object? sender, AnimalEventArgs e)
+    {
+        if (ReferenceEquals(this, e.Animal))
+        {
+            return;
+        }
+
+        string message = $"{Name} welcomes {e.Animal.Name}!😊";
+
+        MessageCreated?.Invoke(
+            this,
+            new LogMessageEventArgs(message));
+    }
+
+    internal void OnAnimalRemoved(object? sender, AnimalEventArgs e)
+    {
+        if (ReferenceEquals(this, e.Animal))
+        {
+            return;
+        }
+
+        string message = $"{Name} says goodbye to {e.Animal.Name}!👋";
+
+        MessageCreated?.Invoke(
+            this,
+            new LogMessageEventArgs(message));
+    }
+
+    internal void OnOtherCrazyAction(object? sender, AnimalEventArgs e)
+    {
+        if (ReferenceEquals(this, e.Animal))
+        {
+            return;
+        }
+
+        if (!TryUseEnergy(2))
+        {
+            MessageCreated?.Invoke(
+                this,
+                new LogMessageEventArgs(
+                    $"{Name} is too tired to react 🥲."));
+
+            return;
+        }
+
+        string message = GetCrazyReaction(e.Animal);
+
+        MessageCreated?.Invoke(
+            this,
+            new LogMessageEventArgs(message));
+    }
+
+    protected virtual string GetCrazyReaction(Animal performer)
+    {
+        return $"{Name} reacts to {performer.Name}'s crazy action!🎉";
+    }
+
+    protected string FinishCrazyAction(string message)
+    {
+        CrazyActionFinished?.Invoke(
+            this,
+            new AnimalEventArgs(this));
+
+        return message;
+    }
+
+
+
     public override string ToString()
     {
         return $"{GetType().Name}: {Name}";

@@ -38,8 +38,15 @@ public class Lion : Animal, IPerformer
             return $"{Name} is too tired for a crazy show.";
         }
 
-        return $"{Name} decides that the whole zoo is now a stage.";
+        return FinishCrazyAction(
+            $"{Name} decides that the whole zoo is now a stage.");
     }
+
+    protected override string GetCrazyReaction(Animal performer)
+    {
+        return $"{Name} roars for {performer.Name}'s crazy show!";
+    }
+
 }
 
 

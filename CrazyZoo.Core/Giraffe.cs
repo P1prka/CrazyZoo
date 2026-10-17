@@ -28,7 +28,8 @@ public class Giraffe : Animal
             return $"{Name} is too tired for a crazy action.";
         }
 
-        return $"{Name} discovers another completely imaginary illness.";
+        return FinishCrazyAction(
+            $"{Name} discovers another completely imaginary illness.");
     }
 
 }

@@ -25,7 +25,8 @@ public class Monkey : Animal, IPerformer
             return $"{Name} is too tired for a crazy action.";
         }
 
-        return $"{Name} throws a banana peel at the visitors!";
+        return FinishCrazyAction(
+            $"{Name} throws a banana peel at the visitors!");
     }
 
     public string Perform()
