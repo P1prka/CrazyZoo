@@ -17,6 +17,10 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly Repository<Hippo> hippos = new();
     private readonly Repository<Penguin> penguins = new();
     private readonly Repository<Monkey> monkeys = new();
+    private readonly Repository<Fox> foxes = new();
+    private readonly Repository<Panda> pandas = new();
+    private readonly Repository<Elephant> elephants = new();
+
 
     public ObservableCollection<Animal> VisibleAnimals { get; } = new();
     public ObservableCollection<string> LogMessages { get; } = new();
@@ -24,7 +28,8 @@ public class MainViewModel : INotifyPropertyChanged
     public string[] AnimalTypes { get; } =
     {
         "Lion", "Zebra", "Giraffe",
-        "Hippo", "Penguin", "Monkey"
+        "Hippo", "Penguin", "Monkey",
+        "Fox", "Panda", "Elephant"
     };
 
     public string[] SortOptions { get; } =
@@ -154,6 +159,11 @@ public class MainViewModel : INotifyPropertyChanged
                 "Hippo" => GetStatistics(hippos),
                 "Penguin" => GetStatistics(penguins),
                 "Monkey" => GetStatistics(monkeys),
+
+                "Fox" => GetStatistics(foxes),
+                "Panda" => GetStatistics(pandas),
+                "Elephant" => GetStatistics(elephants),
+
                 _ => ""
             };
         }
@@ -192,6 +202,11 @@ public class MainViewModel : INotifyPropertyChanged
         penguins.LogCreated += OnLogCreated;
         monkeys.LogCreated += OnLogCreated;
 
+        foxes.LogCreated += OnLogCreated;
+        pandas.LogCreated += OnLogCreated;
+        elephants.LogCreated += OnLogCreated;
+
+
         RefreshVisibleAnimals();
     }
 
@@ -222,6 +237,10 @@ public class MainViewModel : INotifyPropertyChanged
             "Hippo" => new Hippo(name, energy),
             "Penguin" => new Penguin(name, energy),
             "Monkey" => new Monkey(name, energy),
+            "Fox" => new Fox(name, energy),
+            "Panda" => new Panda(name, energy),
+            "Elephant" => new Elephant(name, energy),
+
             _ => throw new InvalidOperationException("Unknown animal type.")
         };
 
@@ -244,6 +263,15 @@ public class MainViewModel : INotifyPropertyChanged
                 break;
             case Monkey monkey:
                 monkeys.Add(monkey);
+                break;
+            case Fox fox:
+                foxes.Add(fox);
+                break;
+            case Panda panda:
+                pandas.Add(panda);
+                break;
+            case Elephant elephant:
+                elephants.Add(elephant);
                 break;
         }
 
@@ -287,6 +315,19 @@ public class MainViewModel : INotifyPropertyChanged
             case Monkey monkey:
                 monkeys.Remove(monkey);
                 break;
+
+            case Fox fox:
+                foxes.Remove(fox);
+                break;
+
+            case Panda panda:
+                pandas.Remove(panda);
+                break;
+
+            case Elephant elephant:
+                elephants.Remove(elephant);
+                break;
+
         }
 
         LogMessages.Add($"Removed {animal}.");
@@ -335,6 +376,11 @@ public class MainViewModel : INotifyPropertyChanged
             "Hippo" => GetFilteredAnimals(hippos),
             "Penguin" => GetFilteredAnimals(penguins),
             "Monkey" => GetFilteredAnimals(monkeys),
+
+            "Fox" => GetFilteredAnimals(foxes),
+            "Panda" => GetFilteredAnimals(pandas),
+            "Elephant" => GetFilteredAnimals(elephants),
+
             _ => Array.Empty<Animal>()
         };
 
