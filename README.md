@@ -90,6 +90,61 @@ https://github.com/P1prka/CrazyZoo/pull/2
 Kaasüliõpilane lisas Monkey klassi eraldi harus. Muudatused vaadati üle ja ühendati main-harusse Pull Requesti kaudu.
 
 
-AI kasutamine
+## Kodutöö 4: Crazy Universe (Vol.2)
+
+Jätkasin Kodutöö 3 CrazyZoo projekti samas Git-hoidlas. Olemasolevad loomad ja nende tegevused on säilitatud.
+
+### Generics ja hoidlad
+
+Lisasin `IRepository<T>` ja `Repository<T>`, mis võimaldavad loomi lisada, eemaldada, otsida ja kuvada.
+
+Igal loomaliigil on eraldi hoidla. `where T : Animal` tagab, et hoidlasse saab lisada ainult sobivat tüüpi loomi.
+
+### Sündmused
+
+Rakenduses on kolm peamist sündmust:
+
+- **Lisamine:** olemasolevad sama hoidla loomad tervitavad uut looma.
+- **Eemaldamine:** allesjäänud loomad jätavad eemaldatud loomaga hüvasti.
+- **CrazyAction:** sama hoidla teised loomad reageerivad tegevusele ning reaktsioon kulutab 2 energiaühikut.
+
+Eemaldatud loom ei reageeri enam sündmustele. Teiste hoidlate loomad ei reageeri.
+
+### LINQ
+
+Kasutasin LINQ-päringuid loomade otsimiseks nime järgi (`Where`), sorteerimiseks energia järgi (`OrderBy`, `OrderByDescending`) ja grupeerimiseks energiataseme järgi (`GroupBy`).
+
+Kasutajaliideses kuvatakse ka loomade arv ja keskmine energia.
+
+### MVVM
+
+Rakendus kasutab MVVM-mustrit.
+
+- **Model/Core:** loomad, hoidlad, sündmused ja tegevuste loogika.
+- **ViewModel:** `MainViewModel`, andmed, logi ja `RelayCommand` käsud.
+- **View:** `MainWindow.xaml`, mis kasutab Binding'uid.
+
+Loendite automaatseks uuendamiseks kasutasin `ObservableCollection<T>` ning omaduste muudatustest teavitamiseks `INotifyPropertyChanged`.
+
+### Koostöö
+
+Kaasüliõpilane Sofia Gubatsjova lisas kolm uut loomaliiki: `Fox`, `Panda` ja `Elephant`.
+
+Uued loomad kasutavad olemasolevaid hoidlaid, sündmusi ja MVVM-lahendust. Muudatused vaadati üle, kiideti heaks (Approve) ja ühendati (Merge) harusse `feature/vol2`.
+
+GitHub Issue: https://github.com/P1prka/CrazyZoo/issues/3
+
+Pull Request: https://github.com/P1prka/CrazyZoo/pull/4
+
+### Git-ajalugu
+
+Kodutöö 3 lõppversioon on säilitatud harus `main`.
+
+Kodutöö 4 arendusharu: `feature/vol2`.
+
+Vol.1 lähte-commit: `686548c275ca7ec8f446e12a175b56126fb0bbaf`.
+
+
+### AI kasutamine
 
 Kasutasin ChatGPT-d GitHubi kasutamise õppimiseks, sealhulgas branch'ide, commit'ide, pull request'ide ja code review mõistmiseks.
