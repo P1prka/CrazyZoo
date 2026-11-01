@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace CrazyZoo.WpfApp;
 
@@ -16,11 +17,14 @@ public partial class MainWindow : Window
         viewModel.ReportLines.CollectionChanged += (s, e) => ScrollToEnd(ReportListBox);
     }
 
-    private static void ScrollToEnd(ListBox listBox)
+    private void ScrollToEnd(ListBox listBox)
     {
-        if (listBox.Items.Count > 0)
+        Dispatcher.InvokeAsync(() =>
         {
-            listBox.ScrollIntoView(listBox.Items[listBox.Items.Count - 1]);
-        }
+            if (listBox.Items.Count > 0)
+            {
+                listBox.ScrollIntoView(listBox.Items[listBox.Items.Count - 1]);
+            }
+        }, DispatcherPriority.Background);
     }
 }
