@@ -148,3 +148,42 @@ Vol.1 lähte-commit: `686548c275ca7ec8f446e12a175b56126fb0bbaf`.
 ### AI kasutamine
 
 Kasutasin ChatGPT-d GitHubi kasutamise õppimiseks, sealhulgas branch'ide, commit'ide, pull request'ide ja code review mõistmiseks.
+
+
+
+
+## Kodutöö 5: Crazy Universe (Vol.3) — arvutused
+
+Jätkasin Vol.2 projekti samas Git-hoidlas. Arendusharu: `feature/vol3`.
+
+### Arvutus
+
+Vahekaardil **Calculations (Vol.3)** saab teha loomade energia prognoosi. Iga valitud looma jaoks tehakse ressursimahukas CPU-arvutus: korduv simulatsioon, kus energia muutub juhuslikult paljude päevade jooksul ja arvutatakse keskmine prognoositud energia.
+
+- Arvutus kasutab loomade andmete hetktõmmist (`AnimalSnapshot`), seega töö ajal tehtud muudatused tulemust ei mõjuta.
+- Kasutaja valib loomad (märkeruudud) ja töömahu (Workload 1–50).
+- Sama sisendi korral on tulemus mõlemas režiimis sama.
+
+### Režiimid
+
+- **Sequential** — loomad arvutatakse ükshaaval, järgmine algab alles pärast eelmise lõppu.
+- **Parallel** — iga looma arvutus käivitatakse `Task.Run`-iga ja kõiki oodatakse `Task.WhenAll`-iga.
+
+Kogukestust mõõdetakse `Stopwatch`-iga. Pärast mõlemat režiimi kuvatakse ajad ja kas tulemused ühtivad. UI reageerib töö ajal.
+
+### Tühistus ja vead
+
+- **Cancel** saadab ühise `CancellationToken`-i kõigile arvutustele. Iga CPU-tsükli samm kontrollib seda.
+- Iga looma edu, viga ja tühistus käsitletakse eraldi. Kui loomal on energia 0, läheb viga raportisse ja teiste loomade arvutused jätkuvad.
+- Raportis on looma nimi, lõppolek (Completed / Error / Cancelled), tulemus või veateade, kestus ja kogu tööaeg.
+
+### Käivitusjuhend
+
+1. Ava lahendus Visual Studios ja käivita `CrazyZoo.WpfApp` (Ctrl + F5).
+2. Vahekaardil **Zoo** lisa loomad, näiteks Lion Alex (60), Zebra Marty (80), Giraffe Melman (50) ja Hippo Gloria (0).
+3. Ava vahekaart **Calculations (Vol.3)**, märgi loomad ja jäta Workload 10.
+4. **Järjestikune:** vajuta **Sequential**.
+5. **Paralleelne:** vajuta **Parallel**. Võrdle kogukestust ja vaata, et tulemused ühtivad.
+6. **Viga:** Gloria (energia 0) saab oleku Error, teised loomad lõpetavad edukalt.
+7. **Tühistus:** käivita arvutus ja vajuta kohe **Cancel** — lõpetamata arvutused saavad oleku Cancelled.
+
