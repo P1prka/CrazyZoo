@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using CrazyZoo.Core;
-
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 namespace CrazyZoo.WpfApp;
 
 public class MainViewModel : INotifyPropertyChanged
@@ -47,6 +49,75 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand PerformCommand { get; }
     public RelayCommand ClearLogCommand { get; }
 
+
+
+    public RelayCommand RunSequentialCommand { get; }
+    public RelayCommand RunParallelCommand { get; }
+    public RelayCommand CancelCommand { get; }
+
+    public ObservableCollection<CalculationItem> CalculationItems { get; } = new();
+    public ObservableCollection<string> ReportLines { get; } = new();
+
+    private CancellationTokenSource? cancellationSource;
+
+    private List<CalculationResult>? lastSequentialResults;
+    private List<CalculationResult>? lastParallelResults;
+    private long lastSequentialMs;
+    private long lastParallelMs;
+
+    private string workloadText = "10";
+
+    public string WorkloadText
+    {
+        get => workloadText;
+        set
+        {
+            workloadText = value ?? "";
+            OnPropertyChanged(nameof(WorkloadText));
+        }
+    }
+
+    private bool isBusy;
+
+    public bool IsBusy
+    {
+        get => isBusy;
+        private set
+        {
+            isBusy = value;
+            OnPropertyChanged(nameof(IsBusy));
+            OnPropertyChanged(nameof(IsNotBusy));
+            RunSequentialCommand.RaiseCanExecuteChanged();
+            RunParallelCommand.RaiseCanExecuteChanged();
+            CancelCommand.RaiseCanExecuteChanged();
+        }
+    }
+
+    public bool IsNotBusy => !IsBusy;
+
+    private string calculationStatus = "Ready.";
+
+    public string CalculationStatus
+    {
+        get => calculationStatus;
+        set
+        {
+            calculationStatus = value;
+            OnPropertyChanged(nameof(CalculationStatus));
+        }
+    }
+
+    private string comparisonText = "Run both modes with the same input to compare.";
+
+    public string ComparisonText
+    {
+        get => comparisonText;
+        set
+        {
+            comparisonText = value;
+            OnPropertyChanged(nameof(ComparisonText));
+        }
+    }
     private string animalName = "";
 
     public string AnimalName
@@ -207,6 +278,14 @@ public class MainViewModel : INotifyPropertyChanged
         elephants.LogCreated += OnLogCreated;
 
 
+        RunSequentialCommand = new RelayCommand(
+            async () => await RunCalculationAsync(false), () => !IsBusy);
+
+        RunParallelCommand = new RelayCommand(
+            async () => await RunCalculationAsync(true), () => !IsBusy);
+
+        CancelCommand = new RelayCommand(CancelCalculation, () => IsBusy);
+
         RefreshVisibleAnimals();
     }
 
@@ -276,6 +355,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
 
         LogMessages.Add($"Added {animal}.");
+        RefreshCalculationItems();
 
         RefreshVisibleAnimals();
 
@@ -331,6 +411,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
 
         LogMessages.Add($"Removed {animal}.");
+        RefreshCalculationItems();
         RefreshVisibleAnimals();
     }
 
@@ -455,7 +536,146 @@ public class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SelectedEnergy));
         OnPropertyChanged(nameof(SelectedEnergyText));
         OnPropertyChanged(nameof(StatisticsText));
+        RefreshCalculationItems();
     }
+
+    private List<Animal> GetAllAnimals()
+    {
+        List<Animal> all = new();
+
+        all.AddRange(lions.GetAll());
+        all.AddRange(zebras.GetAll());
+        all.AddRange(giraffes.GetAll());
+        all.AddRange(hippos.GetAll());
+        all.AddRange(penguins.GetAll());
+        all.AddRange(monkeys.GetAll());
+        all.AddRange(foxes.GetAll());
+        all.AddRange(pandas.GetAll());
+        all.AddRange(elephants.GetAll());
+
+        return all;
+    }
+
+    private void RefreshCalculationItems()
+    {
+        List<Animal> selected = CalculationItems
+            .Where(item => item.IsSelected)
+            .Select(item => item.Animal)
+            .ToList();
+
+        CalculationItems.Clear();
+
+        foreach (Animal animal in GetAllAnimals())
+        {
+            CalculationItems.Add(new CalculationItem(animal, selected.Contains(animal)));
+        }
+    }
+
+    private async Task RunCalculationAsync(bool parallel)
+    {
+        if (IsBusy) return;
+
+        if (!int.TryParse(WorkloadText, out int workload)
+            || workload < AnimalSimulator.MinWorkload
+            || workload > AnimalSimulator.MaxWorkload)
+        {
+            CalculationStatus = "Workload must be a whole number between 1 and 50.";
+            return;
+        }
+
+        List<AnimalSnapshot> snapshots = CalculationItems
+            .Where(item => item.IsSelected)
+            .Select(item => new AnimalSnapshot(
+                item.Animal.Name,
+                item.Animal.GetType().Name,
+                item.Animal.Energy))
+            .ToList();
+
+        if (snapshots.Count == 0)
+        {
+            CalculationStatus = "Select at least one animal.";
+            return;
+        }
+
+        string modeName = parallel ? "Parallel" : "Sequential";
+
+        cancellationSource = new CancellationTokenSource();
+        IsBusy = true;
+        CalculationStatus = $"{modeName} calculation is running...";
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            List<CalculationResult> results;
+
+            if (parallel)
+            {
+                results = await CalculationRunner.RunParallelAsync(
+                    snapshots, workload, cancellationSource.Token);
+            }
+            else
+            {
+                results = await CalculationRunner.RunSequentialAsync(
+                    snapshots, workload, cancellationSource.Token);
+            }
+
+            stopwatch.Stop();
+
+            ReportLines.Add($"=== {modeName} | workload {workload} | animals {snapshots.Count} ===");
+
+            foreach (CalculationResult result in results)
+            {
+                ReportLines.Add(result.ToString());
+            }
+
+            ReportLines.Add($"Total time: {stopwatch.ElapsedMilliseconds} ms");
+            ReportLines.Add("");
+
+            if (parallel)
+            {
+                lastParallelResults = results;
+                lastParallelMs = stopwatch.ElapsedMilliseconds;
+            }
+            else
+            {
+                lastSequentialResults = results;
+                lastSequentialMs = stopwatch.ElapsedMilliseconds;
+            }
+
+            UpdateComparison();
+            CalculationStatus = $"{modeName} finished in {stopwatch.ElapsedMilliseconds} ms.";
+        }
+        finally
+        {
+            cancellationSource.Dispose();
+            cancellationSource = null;
+            IsBusy = false;
+        }
+    }
+
+    private void CancelCalculation()
+    {
+        cancellationSource?.Cancel();
+        CalculationStatus = "Cancelling...";
+    }
+
+    private void UpdateComparison()
+    {
+        if (lastSequentialResults is null || lastParallelResults is null)
+        {
+            return;
+        }
+
+        bool same = lastSequentialResults
+            .Select(r => r.Name + r.Status + r.Message)
+            .SequenceEqual(lastParallelResults.Select(r => r.Name + r.Status + r.Message));
+
+        ComparisonText = $"Sequential: {lastSequentialMs} ms | Parallel: {lastParallelMs} ms | Results match: {(same ? "yes" : "no")}";
+    }
+
+
+
 
     private void OnPropertyChanged(string propertyName)
     {

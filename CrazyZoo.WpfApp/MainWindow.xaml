@@ -1,7 +1,7 @@
 ﻿<Window x:Class="CrazyZoo.WpfApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Crazy Zoo - Vol.2"
+        Title="Crazy Zoo - Vol.3"
         Height="720"
         Width="1080"
         MinHeight="620"
@@ -22,222 +22,352 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="24">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="330"/>
-            <ColumnDefinition Width="18"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <TabControl Margin="10">
 
-        
-        <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <TabItem Header="Zoo">
+            <ScrollViewer Margin="14"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+                <Grid MinHeight="700"
+                      MinWidth="860"
+                      Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                      Height="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="330"/>
+                        <ColumnDefinition Width="18"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Row="0"
-                        Margin="0,0,0,16">
-                <TextBlock Text="Crazy Zoo"
-                           FontSize="30"
-                           FontWeight="Bold"
-                           Foreground="#1F2937"/>
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                <TextBlock Text="Vol.2 - Generics, LINQ, Events, MVVM"
-                           Foreground="#6B7280"
-                           Margin="0,4,0,0"/>
-            </StackPanel>
+                        <StackPanel Grid.Row="0"
+                                Margin="0,0,0,16">
+                            <TextBlock Text="Crazy Zoo"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#1F2937"/>
 
-            
-            <Border Grid.Row="1"
-                    Background="White"
-                    CornerRadius="12"
-                    Padding="18"
-                    Margin="0,0,0,14">
+                            <TextBlock Text="Vol.3 - Generics, LINQ, Events, MVVM, Async"
+                                   Foreground="#6B7280"
+                                   Margin="0,4,0,0"/>
+                        </StackPanel>
 
-                <StackPanel>
-                    <TextBlock Text="Add animal"
-                               FontSize="19"
-                               FontWeight="Bold"
-                               Margin="0,0,0,14"/>
+                        <Border Grid.Row="1"
+                            Background="White"
+                            CornerRadius="12"
+                            Padding="18"
+                            Margin="0,0,0,14">
 
-                    <TextBlock Text="Animal type:"/>
+                            <StackPanel>
+                                <TextBlock Text="Add animal"
+                                       FontSize="19"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,14"/>
 
-                    <ComboBox Height="32"
-                              Margin="0,5,0,12"
-                              ItemsSource="{Binding AnimalTypes}"
-                              SelectedItem="{Binding SelectedType, Mode=TwoWay}"/>
+                                <TextBlock Text="Animal type:"/>
 
-                    <TextBlock Text="Name:"/>
+                                <ComboBox Height="32"
+                                      Margin="0,5,0,12"
+                                      ItemsSource="{Binding AnimalTypes}"
+                                      SelectedItem="{Binding SelectedType, Mode=TwoWay}"/>
 
-                    <TextBox Height="32"
-                             Margin="0,5,0,12"
-                             Text="{Binding AnimalName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Name:"/>
 
-                    <TextBlock Text="Energy (0-100):"/>
+                                <TextBox Height="32"
+                                     Margin="0,5,0,12"
+                                     Text="{Binding AnimalName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <TextBox Height="32"
-                             Margin="0,5,0,14"
-                             Text="{Binding EnergyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="Energy (0-100):"/>
 
-                    <Button Content="Add animal"
-                            Height="38"
-                            FontWeight="SemiBold"
-                            Background="#C7E9DD"
-                            BorderBrush="#A7D8C8"
-                            Command="{Binding AddCommand}"/>
-                </StackPanel>
-            </Border>
+                                <TextBox Height="32"
+                                     Margin="0,5,0,14"
+                                     Text="{Binding EnergyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-          
-            <Border Grid.Row="2"
-                    Background="White"
-                    CornerRadius="12"
-                    Padding="18">
+                                <Button Content="Add animal"
+                                    Height="38"
+                                    FontWeight="SemiBold"
+                                    Background="#C7E9DD"
+                                    BorderBrush="#A7D8C8"
+                                    Command="{Binding AddCommand}"/>
+                            </StackPanel>
+                        </Border>
 
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                        <Border Grid.Row="2"
+                            Background="White"
+                            CornerRadius="12"
+                            Padding="18">
 
-                    <TextBlock Grid.Row="0"
-                               Text="Animals"
-                               FontSize="19"
-                               FontWeight="Bold"
-                               Margin="0,0,0,12"/>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="1"
-                               Text="Search by name:"
-                               Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="0"
+                                       Text="Animals"
+                                       FontSize="19"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,12"/>
 
-                    <TextBox Grid.Row="2"
-                             Height="30"
-                             Margin="0,0,0,10"
-                             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Grid.Row="1"
+                                       Text="Search by name:"
+                                       Margin="0,0,0,5"/>
 
-                    <ComboBox Grid.Row="3"
-                              Height="30"
-                              Margin="0,0,0,12"
-                              ItemsSource="{Binding SortOptions}"
-                              SelectedItem="{Binding SortMode, Mode=TwoWay}"/>
+                                <TextBox Grid.Row="2"
+                                     Height="30"
+                                     Margin="0,0,0,10"
+                                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <ListBox Grid.Row="4"
-                             MinHeight="70"
-                             BorderBrush="#E5E7EB"
-                             ItemsSource="{Binding VisibleAnimals}"
-                             SelectedItem="{Binding SelectedAnimal, Mode=TwoWay}"/>
+                                <ComboBox Grid.Row="3"
+                                      Height="30"
+                                      Margin="0,0,0,12"
+                                      ItemsSource="{Binding SortOptions}"
+                                      SelectedItem="{Binding SortMode, Mode=TwoWay}"/>
 
-                    <TextBlock Grid.Row="5"
-                               Text="{Binding StatisticsText}"
-                               TextWrapping="Wrap"
-                               Foreground="#4B5563"
-                               Margin="0,12,0,0"/>
+                                <ListBox Grid.Row="4"
+                                     MinHeight="70"
+                                     BorderBrush="#E5E7EB"
+                                     ItemsSource="{Binding VisibleAnimals}"
+                                     SelectedItem="{Binding SelectedAnimal, Mode=TwoWay}"/>
+
+                                <TextBlock Grid.Row="5"
+                                       Text="{Binding StatisticsText}"
+                                       TextWrapping="Wrap"
+                                       Foreground="#4B5563"
+                                       Margin="0,12,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0"
+                            Background="White"
+                            CornerRadius="12"
+                            Padding="20">
+
+                            <StackPanel>
+                                <TextBlock Text="Selected animal"
+                                       FontSize="21"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,15"/>
+
+                                <TextBlock Text="{Binding SelectedDescription}"
+                                       FontSize="17"
+                                       Margin="0,0,0,16"/>
+
+                                <TextBlock Text="Energy"
+                                       FontWeight="SemiBold"/>
+
+                                <ProgressBar Minimum="0"
+                                         Maximum="100"
+                                         Height="22"
+                                         Margin="0,7,0,6"
+                                         Value="{Binding SelectedEnergy, Mode=OneWay}"/>
+
+                                <TextBlock Text="{Binding SelectedEnergyText}"
+                                       Foreground="#6B7280"
+                                       Margin="0,0,0,20"/>
+
+                                <WrapPanel>
+                                    <Button Content="Normal action"
+                                        Style="{StaticResource ActionButtonStyle}"
+                                        Command="{Binding NormalCommand}"/>
+
+                                    <Button Content="Crazy action"
+                                        Style="{StaticResource ActionButtonStyle}"
+                                        Command="{Binding CrazyCommand}"/>
+
+                                    <Button Content="Swim"
+                                        Style="{StaticResource ActionButtonStyle}"
+                                        Command="{Binding SwimCommand}"/>
+
+                                    <Button Content="Perform"
+                                        Style="{StaticResource ActionButtonStyle}"
+                                        Command="{Binding PerformCommand}"/>
+
+                                    <Button Content="Remove animal"
+                                        Style="{StaticResource ActionButtonStyle}"
+                                        Background="#FCE0E0"
+                                        Command="{Binding RemoveCommand}"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="2"
+                            Background="White"
+                            CornerRadius="12"
+                            Padding="20">
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <DockPanel Grid.Row="0"
+                                       Margin="0,0,0,14">
+
+                                    <Button DockPanel.Dock="Right"
+                                        Content="Clear log"
+                                        Style="{StaticResource ActionButtonStyle}"
+                                        Margin="8,0,0,0"
+                                        Command="{Binding ClearLogCommand}"/>
+
+                                    <TextBlock Text="Event log"
+                                           FontSize="21"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"/>
+                                </DockPanel>
+
+                                <ListBox Grid.Row="1"
+                                     x:Name="LogListBox"
+                                     ItemsSource="{Binding LogMessages}"
+                                     BorderThickness="0"
+                                     FontSize="13"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </Grid>
-            </Border>
-        </Grid>
+            </ScrollViewer>
+        </TabItem>
 
-        <Grid Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="14"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <TabItem Header="Calculations (Vol.3)">
+            <ScrollViewer Margin="14"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+                <Grid MinHeight="520"
+                      MinWidth="860"
+                      Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                      Height="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="330"/>
+                        <ColumnDefinition Width="18"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-    
-            <Border Grid.Row="0"
-                    Background="White"
-                    CornerRadius="12"
-                    Padding="20">
+                    <Border Grid.Column="0"
+                        Background="White"
+                        CornerRadius="12"
+                        Padding="18">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                <StackPanel>
-                    <TextBlock Text="Selected animal"
-                               FontSize="21"
-                               FontWeight="Bold"
-                               Margin="0,0,0,15"/>
+                            <TextBlock Grid.Row="0"
+                                   Text="Energy forecast"
+                                   FontSize="19"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,12"/>
 
-                    <TextBlock Text="{Binding SelectedDescription}"
-                               FontSize="17"
-                               Margin="0,0,0,16"/>
+                            <TextBlock Grid.Row="1"
+                                   Text="Select animals:"
+                                   Margin="0,0,0,5"/>
 
-                    <TextBlock Text="Energy"
-                               FontWeight="SemiBold"/>
+                            <ListBox Grid.Row="2"
+                                 MinHeight="80"
+                                 BorderBrush="#E5E7EB"
+                                 ItemsSource="{Binding CalculationItems}"
+                                 IsEnabled="{Binding IsNotBusy}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Text}"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
 
+                            <TextBlock Grid.Row="3"
+                                   Text="Workload (1-50):"
+                                   Margin="0,12,0,5"/>
 
-                    <ProgressBar Minimum="0"
-                                 Maximum="100"
-                                 Height="22"
-                                 Margin="0,7,0,6"
-                                 Value="{Binding SelectedEnergy, Mode=OneWay}"/>    
+                            <TextBox Grid.Row="4"
+                                 Height="30"
+                                 Margin="0,0,0,12"
+                                 IsEnabled="{Binding IsNotBusy}"
+                                 Text="{Binding WorkloadText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
+                            <WrapPanel Grid.Row="5">
+                                <Button Content="Sequential"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Command="{Binding RunSequentialCommand}"/>
 
-                    <TextBlock Text="{Binding SelectedEnergyText}"
-                               Foreground="#6B7280"
-                               Margin="0,0,0,20"/>
+                                <Button Content="Parallel"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Command="{Binding RunParallelCommand}"/>
 
-                    <WrapPanel>
-                        <Button Content="Normal action"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Command="{Binding NormalCommand}"/>
+                                <Button Content="Cancel"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Background="#FCE0E0"
+                                    Command="{Binding CancelCommand}"/>
+                            </WrapPanel>
+                        </Grid>
+                    </Border>
 
-                        <Button Content="Crazy action"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Command="{Binding CrazyCommand}"/>
+                    <Border Grid.Column="2"
+                        Background="White"
+                        CornerRadius="12"
+                        Padding="20">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                        <Button Content="Swim"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Command="{Binding SwimCommand}"/>
-
-                        <Button Content="Perform"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Command="{Binding PerformCommand}"/>
-
-                        <Button Content="Remove animal"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Background="#FCE0E0"
-                                Command="{Binding RemoveCommand}"/>
-                    </WrapPanel>
-                </StackPanel>
-            </Border>
-
-
-            <Border Grid.Row="2"
-                    Background="White"
-                    CornerRadius="12"
-                    Padding="20">
-
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <DockPanel Grid.Row="0"
-                               Margin="0,0,0,14">
-
-                        <Button DockPanel.Dock="Right"
-                                Content="Clear log"
-                                Style="{StaticResource ActionButtonStyle}"
-                                Margin="8,0,0,0"
-                                Command="{Binding ClearLogCommand}"/>
-
-                        <TextBlock Text="Event log"
+                            <TextBlock Grid.Row="0"
+                                   Text="Report"
                                    FontSize="21"
                                    FontWeight="Bold"
-                                   VerticalAlignment="Center"/>
-                    </DockPanel>
+                                   Margin="0,0,0,10"/>
 
-                    <ListBox Grid.Row="1"
-                             ItemsSource="{Binding LogMessages}"
-                             BorderThickness="0"
-                             FontSize="13"/>
+                            <TextBlock Grid.Row="1"
+                                   Text="{Binding CalculationStatus}"
+                                   Margin="0,0,0,6"/>
+
+                            <TextBlock Grid.Row="2"
+                                   Text="{Binding ComparisonText}"
+                                   Foreground="#4B5563"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"/>
+
+                            <ProgressBar Grid.Row="3"
+                                     Height="10"
+                                     Margin="0,0,0,10"
+                                     IsIndeterminate="{Binding IsBusy, Mode=OneWay}"/>
+
+                            <ListBox Grid.Row="4"
+                                 x:Name="ReportListBox"
+                                 ItemsSource="{Binding ReportLines}"
+                                 BorderThickness="0"
+                                 FontSize="13"/>
+                        </Grid>
+                    </Border>
                 </Grid>
-            </Border>
-        </Grid>
-    </Grid>
+            </ScrollViewer>
+        </TabItem>
+
+    </TabControl>
 </Window>
