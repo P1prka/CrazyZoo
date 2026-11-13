@@ -152,6 +152,8 @@ Kasutasin ChatGPT-d GitHubi kasutamise õppimiseks, sealhulgas branch'ide, commi
 
 
 
+
+
 ## Kodutöö 5: Crazy Universe (Vol.3) — arvutused
 
 Jätkasin Vol.2 projekti samas Git-hoidlas. Arendusharu: `feature/vol3`.
@@ -187,3 +189,16 @@ Kogukestust mõõdetakse `Stopwatch`-iga. Pärast mõlemat režiimi kuvatakse aj
 6. **Viga:** Gloria (energia 0) saab oleku Error, teised loomad lõpetavad edukalt.
 7. **Tühistus:** käivita arvutus ja vajuta kohe **Cancel** — lõpetamata arvutused saavad oleku Cancelled.
 
+Kodutöö 6: Crazy Universe (Vol.4) — maailma salvestamine
+
+GitHub: https://github.com/P1prka/CrazyZoo
+Arendusharu: feature/vol4
+Pull Request: https://github.com/P1prka/CrazyZoo/pull/6
+
+Maailma olek (looma Id, tüüp, nimi, energia ja rühm) salvestatakse eraldi DTO-dena (WorldDto, AnimalDto).
+Sama IWorldStorage lepingu järgi on tehtud JSON-, XML- ja LocalDB/ADO.NET-teostus.
+DI (ServiceCollection) registreerib salvestusteostuse käivitamisel appsettings.json järgi, ViewModel saab IWorldStorage konstruktorist.
+Laadimisel luuakse õiged loomatüübid, uued Repository<T> hoidlad ja reaktsioonid; vigase faili korral jääb senine maailm alles.
+LocalDB-s on tabelid Animals ja AnimalGroups (välisvõti), SQL on parameetritega ja salvestamine toimub ühe tehinguna.
+
+Käivitusjuhend ja LocalDB seadistus on README-s, demonstratsiooni ekraanipildid on PR-is.
