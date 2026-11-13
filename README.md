@@ -189,16 +189,76 @@ Kogukestust mõõdetakse `Stopwatch`-iga. Pärast mõlemat režiimi kuvatakse aj
 6. **Viga:** Gloria (energia 0) saab oleku Error, teised loomad lõpetavad edukalt.
 7. **Tühistus:** käivita arvutus ja vajuta kohe **Cancel** — lõpetamata arvutused saavad oleku Cancelled.
 
-Kodutöö 6: Crazy Universe (Vol.4) — maailma salvestamine
 
-GitHub: https://github.com/P1prka/CrazyZoo
-Arendusharu: feature/vol4
-Pull Request: https://github.com/P1prka/CrazyZoo/pull/6
 
-Maailma olek (looma Id, tüüp, nimi, energia ja rühm) salvestatakse eraldi DTO-dena (WorldDto, AnimalDto).
-Sama IWorldStorage lepingu järgi on tehtud JSON-, XML- ja LocalDB/ADO.NET-teostus.
-DI (ServiceCollection) registreerib salvestusteostuse käivitamisel appsettings.json järgi, ViewModel saab IWorldStorage konstruktorist.
-Laadimisel luuakse õiged loomatüübid, uued Repository<T> hoidlad ja reaktsioonid; vigase faili korral jääb senine maailm alles.
-LocalDB-s on tabelid Animals ja AnimalGroups (välisvõti), SQL on parameetritega ja salvestamine toimub ühe tehinguna.
 
-Käivitusjuhend ja LocalDB seadistus on README-s, demonstratsiooni ekraanipildid on PR-is.
+
+
+## Kodutöö 6: Crazy Universe (Vol.4) — maailma salvestamine
+
+Arendusharu: `feature/vol4`.
+
+### Mida salvestatakse
+
+Iga looma kohta: **Id (Guid), tüüp, nimi, energia ja rühm** (Savanna, Jungle, Water, Arctic). Rühma saab muuta nupuga **Change group**.
+Salvestatakse eraldi DTO-d (`WorldDto`, `AnimalDto`), mitte aknad, käsud ega sündmuste tellimused.
+
+### Salvestusteostused
+
+Kõik teostused järgivad sama lepingut `IWorldStorage`:
+
+- `JsonWorldStorage` — JSON-fail (`System.Text.Json`)
+- `XmlWorldStorage` — XML-fail (`XmlSerializer`)
+- `FileWorldStorage` — valib faililaiendi järgi JSON-i või XML-i
+- `SqlWorldStorage` — LocalDB + ADO.NET (`Microsoft.Data.SqlClient`)
+
+Laadimisel luuakse DTO-de põhjal õiged loomatüübid, uued `Repository<T>` hoidlad ja reaktsioonid. Maailm asendatakse alles pärast edukat lugemist ja kontrolli. Vigase faili korral kuvatakse viga ja senine maailm jääb alles.
+
+### DI
+
+`App.xaml.cs` loob `ServiceCollection`-i ja registreerib salvestusteostuse faili `appsettings.json` järgi:
+
+- `"Storage": "File"` — JSON ja XML (failidialoog)
+- `"Storage": "LocalDb"` — LocalDB
+
+`MainViewModel` saab `IWorldStorage` ja `IPathService` sõltuvused konstruktorist. Valitud teostus on näha vahekaardil **Storage (Vol.4)**.
+
+### LocalDB
+
+**Eeldused:** SQL Server Express LocalDB (Visual Studio Installer → Individual components → *SQL Server Express LocalDB*).
+
+Kontroll käsureal:
+
+    sqllocaldb info
+    sqllocaldb start MSSQLLocalDB
+
+**Ühendus** on failis `appsettings.json`:
+
+    Server=(localdb)\MSSQLLocalDB;Database=CrazyZooDb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;
+
+**Andmebaas ja tabelid** luuakse automaatselt esimesel salvestamisel või laadimisel. Sama struktuur SQL-ina:
+
+    CREATE TABLE dbo.AnimalGroups (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Name NVARCHAR(50) NOT NULL UNIQUE
+    );
+
+    CREATE TABLE dbo.Animals (
+        Id UNIQUEIDENTIFIER PRIMARY KEY,
+        Type NVARCHAR(50) NOT NULL,
+        Name NVARCHAR(100) NOT NULL,
+        Energy INT NOT NULL CHECK (Energy BETWEEN 0 AND 100),
+        GroupId INT NOT NULL REFERENCES dbo.AnimalGroups(Id)
+    );
+
+Salvestamisel kasutatakse parameetritega SQL-i ja kõik muudatused tehakse ühe tehinguna (Commit / Rollback).
+
+### Käivitusjuhend
+
+1. Ava lahendus Visual Studios ja käivita `CrazyZoo.WpfApp` (Ctrl + F5).
+2. **JSON/XML:** lisa loomad, muuda energiat (Crazy action) ja rühma. Vahekaardil **Storage** vajuta **Save world** ja salvesta `world.json`, seejärel `world.xml`.
+3. Sulge rakendus, käivita uuesti ja vajuta **Load world** — taastuvad samad Id-d, tüübid, väljad ja rühmad.
+4. Vali taastatud lõvi ja vajuta **Crazy action** — teine lõvi reageerib.
+5. **Vigane fail:** lae tekstifail `bad.json` (sisu `hello`) — kuvatakse viga, senine maailm jääb alles.
+6. **LocalDB:** muuda `appsettings.json` failis `"Storage": "LocalDb"`, käivita, salvesta, taaskäivita ja laadi.
+
