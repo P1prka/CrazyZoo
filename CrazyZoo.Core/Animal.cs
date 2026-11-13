@@ -4,12 +4,35 @@ using System.Text;
 
 namespace CrazyZoo.Core;
 
-
 public abstract class Animal
 {
     public string Name { get; }
 
     public int Energy { get; private set; }
+
+    public Guid Id { get; private set; } = Guid.NewGuid();
+
+    public string Group { get; private set; } = AnimalGroups.Default;
+
+    public void MoveToGroup(string group)
+    {
+        if (!AnimalGroups.IsValid(group))
+        {
+            throw new ArgumentException($"Unknown group: {group}");
+        }
+
+        Group = group;
+    }
+
+    internal void RestoreId(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("Id is required.");
+        }
+
+        Id = id;
+    }
 
     protected Animal(string name, int energy)
     {
@@ -49,7 +72,6 @@ public abstract class Animal
 
         Energy = newEnergy;
     }
-
 
     internal event EventHandler<LogMessageEventArgs>? MessageCreated;
 
@@ -121,14 +143,10 @@ public abstract class Animal
         return message;
     }
 
-
-
     public override string ToString()
     {
         return $"{GetType().Name}: {Name}";
     }
-
-
 
     protected bool TryUseEnergy(int amount)
     {
@@ -140,27 +158,4 @@ public abstract class Animal
         Energy -= amount;
         return true;
     }
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

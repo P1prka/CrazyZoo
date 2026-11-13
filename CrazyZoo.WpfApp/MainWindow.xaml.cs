@@ -6,11 +6,10 @@ namespace CrazyZoo.WpfApp;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    public MainWindow(MainViewModel viewModel)
     {
         InitializeComponent();
 
-        MainViewModel viewModel = new MainViewModel();
         DataContext = viewModel;
 
         viewModel.LogMessages.CollectionChanged += (s, e) => ScrollToEnd(LogListBox);
@@ -28,3 +27,6 @@ public partial class MainWindow : Window
         }, DispatcherPriority.Background);
     }
 }
+
+
+
