@@ -190,10 +190,6 @@ Kogukestust mõõdetakse `Stopwatch`-iga. Pärast mõlemat režiimi kuvatakse aj
 7. **Tühistus:** käivita arvutus ja vajuta kohe **Cancel** — lõpetamata arvutused saavad oleku Cancelled.
 
 
-
-
-
-
 ## Kodutöö 6: Crazy Universe (Vol.4) — maailma salvestamine
 
 Arendusharu: `feature/vol4`.
@@ -261,4 +257,3 @@ Salvestamisel kasutatakse parameetritega SQL-i ja kõik muudatused tehakse ühe 
 4. Vali taastatud lõvi ja vajuta **Crazy action** — teine lõvi reageerib.
 5. **Vigane fail:** lae tekstifail `bad.json` (sisu `hello`) — kuvatakse viga, senine maailm jääb alles.
 6. **LocalDB:** muuda `appsettings.json` failis `"Storage": "LocalDb"`, käivita, salvesta, taaskäivita ja laadi.
-
