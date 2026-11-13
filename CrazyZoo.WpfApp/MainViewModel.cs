@@ -2,30 +2,36 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using CrazyZoo.Core;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CrazyZoo.Core;
+
 namespace CrazyZoo.WpfApp;
 
 public class MainViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private readonly Repository<Lion> lions = new();
-    private readonly Repository<Zebra> zebras = new();
-    private readonly Repository<Giraffe> giraffes = new();
-    private readonly Repository<Hippo> hippos = new();
-    private readonly Repository<Penguin> penguins = new();
-    private readonly Repository<Monkey> monkeys = new();
-    private readonly Repository<Fox> foxes = new();
-    private readonly Repository<Panda> pandas = new();
-    private readonly Repository<Elephant> elephants = new();
+    private readonly IWorldStorage storage;
+    private readonly IPathService pathService;
 
+    private Repository<Lion> lions = new();
+    private Repository<Zebra> zebras = new();
+    private Repository<Giraffe> giraffes = new();
+    private Repository<Hippo> hippos = new();
+    private Repository<Penguin> penguins = new();
+    private Repository<Monkey> monkeys = new();
+    private Repository<Fox> foxes = new();
+    private Repository<Panda> pandas = new();
+    private Repository<Elephant> elephants = new();
 
     public ObservableCollection<Animal> VisibleAnimals { get; } = new();
     public ObservableCollection<string> LogMessages { get; } = new();
+    public ObservableCollection<CalculationItem> CalculationItems { get; } = new();
+    public ObservableCollection<string> ReportLines { get; } = new();
+    public ObservableCollection<string> WorldLines { get; } = new();
 
     public string[] AnimalTypes { get; } =
     {
@@ -41,6 +47,8 @@ public class MainViewModel : INotifyPropertyChanged
         "Energy: low to high"
     };
 
+    public string[] Groups { get; } = AnimalGroups.All;
+
     public RelayCommand AddCommand { get; }
     public RelayCommand RemoveCommand { get; }
     public RelayCommand NormalCommand { get; }
@@ -48,15 +56,14 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand SwimCommand { get; }
     public RelayCommand PerformCommand { get; }
     public RelayCommand ClearLogCommand { get; }
-
-
+    public RelayCommand ChangeGroupCommand { get; }
 
     public RelayCommand RunSequentialCommand { get; }
     public RelayCommand RunParallelCommand { get; }
     public RelayCommand CancelCommand { get; }
 
-    public ObservableCollection<CalculationItem> CalculationItems { get; } = new();
-    public ObservableCollection<string> ReportLines { get; } = new();
+    public RelayCommand SaveCommand { get; }
+    public RelayCommand LoadCommand { get; }
 
     private CancellationTokenSource? cancellationSource;
 
@@ -65,59 +72,6 @@ public class MainViewModel : INotifyPropertyChanged
     private long lastSequentialMs;
     private long lastParallelMs;
 
-    private string workloadText = "10";
-
-    public string WorkloadText
-    {
-        get => workloadText;
-        set
-        {
-            workloadText = value ?? "";
-            OnPropertyChanged(nameof(WorkloadText));
-        }
-    }
-
-    private bool isBusy;
-
-    public bool IsBusy
-    {
-        get => isBusy;
-        private set
-        {
-            isBusy = value;
-            OnPropertyChanged(nameof(IsBusy));
-            OnPropertyChanged(nameof(IsNotBusy));
-            RunSequentialCommand.RaiseCanExecuteChanged();
-            RunParallelCommand.RaiseCanExecuteChanged();
-            CancelCommand.RaiseCanExecuteChanged();
-        }
-    }
-
-    public bool IsNotBusy => !IsBusy;
-
-    private string calculationStatus = "Ready.";
-
-    public string CalculationStatus
-    {
-        get => calculationStatus;
-        set
-        {
-            calculationStatus = value;
-            OnPropertyChanged(nameof(CalculationStatus));
-        }
-    }
-
-    private string comparisonText = "Run both modes with the same input to compare.";
-
-    public string ComparisonText
-    {
-        get => comparisonText;
-        set
-        {
-            comparisonText = value;
-            OnPropertyChanged(nameof(ComparisonText));
-        }
-    }
     private string animalName = "";
 
     public string AnimalName
@@ -156,6 +110,19 @@ public class MainViewModel : INotifyPropertyChanged
 
             RefreshVisibleAnimals();
             AddCommand.RaiseCanExecuteChanged();
+        }
+    }
+
+    private string selectedGroup = AnimalGroups.Default;
+
+    public string SelectedGroup
+    {
+        get => selectedGroup;
+        set
+        {
+            selectedGroup = value ?? AnimalGroups.Default;
+            OnPropertyChanged(nameof(SelectedGroup));
+            ChangeGroupCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -208,11 +175,22 @@ public class MainViewModel : INotifyPropertyChanged
             CrazyCommand.RaiseCanExecuteChanged();
             SwimCommand.RaiseCanExecuteChanged();
             PerformCommand.RaiseCanExecuteChanged();
+            ChangeGroupCommand.RaiseCanExecuteChanged();
         }
     }
 
-    public string SelectedDescription =>
-        SelectedAnimal?.ToString() ?? "No animal selected.";
+    public string SelectedDescription
+    {
+        get
+        {
+            if (SelectedAnimal is null)
+            {
+                return "No animal selected.";
+            }
+
+            return $"{SelectedAnimal}\nGroup: {SelectedAnimal.Group}\nId: {SelectedAnimal.Id}";
+        }
+    }
 
     public int SelectedEnergy => SelectedAnimal?.Energy ?? 0;
 
@@ -230,18 +208,89 @@ public class MainViewModel : INotifyPropertyChanged
                 "Hippo" => GetStatistics(hippos),
                 "Penguin" => GetStatistics(penguins),
                 "Monkey" => GetStatistics(monkeys),
-
                 "Fox" => GetStatistics(foxes),
                 "Panda" => GetStatistics(pandas),
                 "Elephant" => GetStatistics(elephants),
-
                 _ => ""
             };
         }
     }
 
-    public MainViewModel()
+    private string workloadText = "10";
+
+    public string WorkloadText
     {
+        get => workloadText;
+        set
+        {
+            workloadText = value ?? "";
+            OnPropertyChanged(nameof(WorkloadText));
+        }
+    }
+
+    private bool isBusy;
+
+    public bool IsBusy
+    {
+        get => isBusy;
+        private set
+        {
+            isBusy = value;
+            OnPropertyChanged(nameof(IsBusy));
+            OnPropertyChanged(nameof(IsNotBusy));
+            RunSequentialCommand.RaiseCanExecuteChanged();
+            RunParallelCommand.RaiseCanExecuteChanged();
+            CancelCommand.RaiseCanExecuteChanged();
+            SaveCommand.RaiseCanExecuteChanged();
+            LoadCommand.RaiseCanExecuteChanged();
+        }
+    }
+
+    public bool IsNotBusy => !IsBusy;
+
+    private string calculationStatus = "Ready.";
+
+    public string CalculationStatus
+    {
+        get => calculationStatus;
+        set
+        {
+            calculationStatus = value;
+            OnPropertyChanged(nameof(CalculationStatus));
+        }
+    }
+
+    private string comparisonText = "Run both modes with the same input to compare.";
+
+    public string ComparisonText
+    {
+        get => comparisonText;
+        set
+        {
+            comparisonText = value;
+            OnPropertyChanged(nameof(ComparisonText));
+        }
+    }
+
+    public string StorageInfo => $"Storage selected by DI: {storage.GetType().Name}";
+
+    private string storageStatus = "Nothing saved or loaded yet.";
+
+    public string StorageStatus
+    {
+        get => storageStatus;
+        set
+        {
+            storageStatus = value;
+            OnPropertyChanged(nameof(StorageStatus));
+        }
+    }
+
+    public MainViewModel(IWorldStorage storage, IPathService pathService)
+    {
+        this.storage = storage;
+        this.pathService = pathService;
+
         AddCommand = new RelayCommand(AddAnimal, CanAddAnimal);
 
         RemoveCommand = new RelayCommand(
@@ -259,24 +308,15 @@ public class MainViewModel : INotifyPropertyChanged
         PerformCommand = new RelayCommand(
             DoPerform, () => SelectedAnimal is IPerformer);
 
+        ChangeGroupCommand = new RelayCommand(
+            ChangeGroup, () => SelectedAnimal != null);
+
         ClearLogCommand = new RelayCommand(
             () => LogMessages.Clear(),
             () => LogMessages.Count > 0);
 
         LogMessages.CollectionChanged += (sender, e) =>
             ClearLogCommand.RaiseCanExecuteChanged();
-
-        lions.LogCreated += OnLogCreated;
-        zebras.LogCreated += OnLogCreated;
-        giraffes.LogCreated += OnLogCreated;
-        hippos.LogCreated += OnLogCreated;
-        penguins.LogCreated += OnLogCreated;
-        monkeys.LogCreated += OnLogCreated;
-
-        foxes.LogCreated += OnLogCreated;
-        pandas.LogCreated += OnLogCreated;
-        elephants.LogCreated += OnLogCreated;
-
 
         RunSequentialCommand = new RelayCommand(
             async () => await RunCalculationAsync(false), () => !IsBusy);
@@ -286,7 +326,16 @@ public class MainViewModel : INotifyPropertyChanged
 
         CancelCommand = new RelayCommand(CancelCalculation, () => IsBusy);
 
+        SaveCommand = new RelayCommand(
+            async () => await SaveWorldAsync(), () => !IsBusy);
+
+        LoadCommand = new RelayCommand(
+            async () => await LoadWorldAsync(), () => !IsBusy);
+
+        SubscribeRepositories();
+
         RefreshVisibleAnimals();
+        RefreshCalculationItems();
     }
 
     private bool CanAddAnimal()
@@ -319,45 +368,17 @@ public class MainViewModel : INotifyPropertyChanged
             "Fox" => new Fox(name, energy),
             "Panda" => new Panda(name, energy),
             "Elephant" => new Elephant(name, energy),
-
             _ => throw new InvalidOperationException("Unknown animal type.")
         };
 
-        switch (animal)
-        {
-            case Lion lion:
-                lions.Add(lion);
-                break;
-            case Zebra zebra:
-                zebras.Add(zebra);
-                break;
-            case Giraffe giraffe:
-                giraffes.Add(giraffe);
-                break;
-            case Hippo hippo:
-                hippos.Add(hippo);
-                break;
-            case Penguin penguin:
-                penguins.Add(penguin);
-                break;
-            case Monkey monkey:
-                monkeys.Add(monkey);
-                break;
-            case Fox fox:
-                foxes.Add(fox);
-                break;
-            case Panda panda:
-                pandas.Add(panda);
-                break;
-            case Elephant elephant:
-                elephants.Add(elephant);
-                break;
-        }
+        animal.MoveToGroup(SelectedGroup);
 
-        LogMessages.Add($"Added {animal}.");
-        RefreshCalculationItems();
+        AddToRepository(animal);
+
+        LogMessages.Add($"Added {animal} to group {animal.Group}.");
 
         RefreshVisibleAnimals();
+        RefreshCalculationItems();
 
         if (VisibleAnimals.Contains(animal))
         {
@@ -366,6 +387,22 @@ public class MainViewModel : INotifyPropertyChanged
 
         AnimalName = "";
         EnergyText = "50";
+    }
+
+    private void AddToRepository(Animal animal)
+    {
+        switch (animal)
+        {
+            case Lion lion: lions.Add(lion); break;
+            case Zebra zebra: zebras.Add(zebra); break;
+            case Giraffe giraffe: giraffes.Add(giraffe); break;
+            case Hippo hippo: hippos.Add(hippo); break;
+            case Penguin penguin: penguins.Add(penguin); break;
+            case Monkey monkey: monkeys.Add(monkey); break;
+            case Fox fox: foxes.Add(fox); break;
+            case Panda panda: pandas.Add(panda); break;
+            case Elephant elephant: elephants.Add(elephant); break;
+        }
     }
 
     private void RemoveAnimal()
@@ -377,42 +414,35 @@ public class MainViewModel : INotifyPropertyChanged
 
         switch (animal)
         {
-            case Lion lion:
-                lions.Remove(lion);
-                break;
-            case Zebra zebra:
-                zebras.Remove(zebra);
-                break;
-            case Giraffe giraffe:
-                giraffes.Remove(giraffe);
-                break;
-            case Hippo hippo:
-                hippos.Remove(hippo);
-                break;
-            case Penguin penguin:
-                penguins.Remove(penguin);
-                break;
-            case Monkey monkey:
-                monkeys.Remove(monkey);
-                break;
-
-            case Fox fox:
-                foxes.Remove(fox);
-                break;
-
-            case Panda panda:
-                pandas.Remove(panda);
-                break;
-
-            case Elephant elephant:
-                elephants.Remove(elephant);
-                break;
-
+            case Lion lion: lions.Remove(lion); break;
+            case Zebra zebra: zebras.Remove(zebra); break;
+            case Giraffe giraffe: giraffes.Remove(giraffe); break;
+            case Hippo hippo: hippos.Remove(hippo); break;
+            case Penguin penguin: penguins.Remove(penguin); break;
+            case Monkey monkey: monkeys.Remove(monkey); break;
+            case Fox fox: foxes.Remove(fox); break;
+            case Panda panda: pandas.Remove(panda); break;
+            case Elephant elephant: elephants.Remove(elephant); break;
         }
 
         LogMessages.Add($"Removed {animal}.");
-        RefreshCalculationItems();
+
         RefreshVisibleAnimals();
+        RefreshCalculationItems();
+    }
+
+    private void ChangeGroup()
+    {
+        if (SelectedAnimal is null)
+        {
+            return;
+        }
+
+        SelectedAnimal.MoveToGroup(SelectedGroup);
+        LogMessages.Add($"{SelectedAnimal.Name} moved to group {SelectedAnimal.Group}.");
+
+        OnPropertyChanged(nameof(SelectedDescription));
+        RefreshCalculationItems();
     }
 
     private void DoNormalAction()
@@ -457,11 +487,9 @@ public class MainViewModel : INotifyPropertyChanged
             "Hippo" => GetFilteredAnimals(hippos),
             "Penguin" => GetFilteredAnimals(penguins),
             "Monkey" => GetFilteredAnimals(monkeys),
-
             "Fox" => GetFilteredAnimals(foxes),
             "Panda" => GetFilteredAnimals(pandas),
             "Elephant" => GetFilteredAnimals(elephants),
-
             _ => Array.Empty<Animal>()
         };
 
@@ -492,16 +520,12 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (SortMode == "Energy: high to low")
         {
-            return animals
-                .OrderByDescending(a => a.Energy)
-                .ToList();
+            return animals.OrderByDescending(a => a.Energy).ToList();
         }
 
         if (SortMode == "Energy: low to high")
         {
-            return animals
-                .OrderBy(a => a.Energy)
-                .ToList();
+            return animals.OrderBy(a => a.Energy).ToList();
         }
 
         return animals.ToList();
@@ -510,8 +534,7 @@ public class MainViewModel : INotifyPropertyChanged
     private string GetStatistics<T>(
         Repository<T> repository) where T : Animal
     {
-        Dictionary<string, int> groups =
-            repository.CountByEnergyLevel();
+        Dictionary<string, int> groups = repository.CountByEnergyLevel();
 
         int low = groups.GetValueOrDefault("Low");
         int medium = groups.GetValueOrDefault("Medium");
@@ -524,8 +547,7 @@ public class MainViewModel : INotifyPropertyChanged
             + $"\nAverage energy: {average:0.0}";
     }
 
-    private void OnLogCreated(
-        object? sender, LogMessageEventArgs e)
+    private void OnLogCreated(object? sender, LogMessageEventArgs e)
     {
         LogMessages.Add(e.Message);
         UpdateEnergyDisplay();
@@ -564,11 +586,149 @@ public class MainViewModel : INotifyPropertyChanged
             .ToList();
 
         CalculationItems.Clear();
+        WorldLines.Clear();
 
         foreach (Animal animal in GetAllAnimals())
         {
             CalculationItems.Add(new CalculationItem(animal, selected.Contains(animal)));
+            WorldLines.Add(
+                $"{animal.Id} | {animal.GetType().Name} | {animal.Name} | Energy {animal.Energy} | {animal.Group}");
         }
+    }
+
+    private async Task SaveWorldAsync()
+    {
+        string? path = pathService.GetSavePath();
+
+        if (path is null)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StorageStatus = "Saving...";
+
+        try
+        {
+            WorldDto world = WorldMapper.ToDto(GetAllAnimals());
+            await storage.SaveAsync(world, path);
+
+            StorageStatus = $"Saved {world.Animals.Count} animals to {path}.";
+        }
+        catch (Exception ex)
+        {
+            StorageStatus = $"Save failed: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        LogMessages.Add(StorageStatus);
+    }
+
+    private async Task LoadWorldAsync()
+    {
+        string? path = pathService.GetLoadPath();
+
+        if (path is null)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StorageStatus = "Loading...";
+
+        try
+        {
+            WorldDto world = await storage.LoadAsync(path);
+            List<Animal> animals = WorldMapper.FromDto(world);
+            ReplaceWorld(animals);
+
+            StorageStatus = $"Loaded {animals.Count} animals from {path}.";
+        }
+        catch (Exception ex)
+        {
+            StorageStatus = $"Load failed, current world was kept. {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        LogMessages.Add(StorageStatus);
+    }
+
+    private void ReplaceWorld(List<Animal> animals)
+    {
+        Repository<Lion> newLions = new();
+        Repository<Zebra> newZebras = new();
+        Repository<Giraffe> newGiraffes = new();
+        Repository<Hippo> newHippos = new();
+        Repository<Penguin> newPenguins = new();
+        Repository<Monkey> newMonkeys = new();
+        Repository<Fox> newFoxes = new();
+        Repository<Panda> newPandas = new();
+        Repository<Elephant> newElephants = new();
+
+        foreach (Animal animal in animals)
+        {
+            switch (animal)
+            {
+                case Lion lion: newLions.Add(lion); break;
+                case Zebra zebra: newZebras.Add(zebra); break;
+                case Giraffe giraffe: newGiraffes.Add(giraffe); break;
+                case Hippo hippo: newHippos.Add(hippo); break;
+                case Penguin penguin: newPenguins.Add(penguin); break;
+                case Monkey monkey: newMonkeys.Add(monkey); break;
+                case Fox fox: newFoxes.Add(fox); break;
+                case Panda panda: newPandas.Add(panda); break;
+                case Elephant elephant: newElephants.Add(elephant); break;
+            }
+        }
+
+        UnsubscribeRepositories();
+
+        lions = newLions;
+        zebras = newZebras;
+        giraffes = newGiraffes;
+        hippos = newHippos;
+        penguins = newPenguins;
+        monkeys = newMonkeys;
+        foxes = newFoxes;
+        pandas = newPandas;
+        elephants = newElephants;
+
+        SubscribeRepositories();
+
+        RefreshVisibleAnimals();
+        RefreshCalculationItems();
+    }
+
+    private void SubscribeRepositories()
+    {
+        lions.LogCreated += OnLogCreated;
+        zebras.LogCreated += OnLogCreated;
+        giraffes.LogCreated += OnLogCreated;
+        hippos.LogCreated += OnLogCreated;
+        penguins.LogCreated += OnLogCreated;
+        monkeys.LogCreated += OnLogCreated;
+        foxes.LogCreated += OnLogCreated;
+        pandas.LogCreated += OnLogCreated;
+        elephants.LogCreated += OnLogCreated;
+    }
+
+    private void UnsubscribeRepositories()
+    {
+        lions.LogCreated -= OnLogCreated;
+        zebras.LogCreated -= OnLogCreated;
+        giraffes.LogCreated -= OnLogCreated;
+        hippos.LogCreated -= OnLogCreated;
+        penguins.LogCreated -= OnLogCreated;
+        monkeys.LogCreated -= OnLogCreated;
+        foxes.LogCreated -= OnLogCreated;
+        pandas.LogCreated -= OnLogCreated;
+        elephants.LogCreated -= OnLogCreated;
     }
 
     private async Task RunCalculationAsync(bool parallel)
@@ -673,9 +833,6 @@ public class MainViewModel : INotifyPropertyChanged
 
         ComparisonText = $"Sequential: {lastSequentialMs} ms | Parallel: {lastParallelMs} ms | Results match: {(same ? "yes" : "no")}";
     }
-
-
-
 
     private void OnPropertyChanged(string propertyName)
     {
