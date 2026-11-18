@@ -249,6 +249,8 @@ Kontroll käsureal:
 
 Salvestamisel kasutatakse parameetritega SQL-i ja kõik muudatused tehakse ühe tehinguna (Commit / Rollback).
 
+
+
 ### Käivitusjuhend
 
 1. Ava lahendus Visual Studios ja käivita `CrazyZoo.WpfApp` (Ctrl + F5).
@@ -257,3 +259,133 @@ Salvestamisel kasutatakse parameetritega SQL-i ja kõik muudatused tehakse ühe 
 4. Vali taastatud lõvi ja vajuta **Crazy action** — teine lõvi reageerib.
 5. **Vigane fail:** lae tekstifail `bad.json` (sisu `hello`) — kuvatakse viga, senine maailm jääb alles.
 6. **LocalDB:** muuda `appsettings.json` failis `"Storage": "LocalDb"`, käivita, salvesta, taaskäivita ja laadi.
+
+
+
+
+
+
+## Kodutöö 7: Crazy Universe (Vol.5) — EF Core, SOLID ja DDD
+
+Arendusharu: `feature/vol5`.
+
+### EF Core salvestus
+
+Lisasin klassi `EfWorldStorage`, mis täidab sama lepingut `IWorldStorage` nagu JSON-, XML- ja ADO.NET-teostus.
+
+- `ZooContext` (`DbContext`) — tabelid `Animals` ja `AnimalGroups`.
+- `AnimalRecord` ja selle alamklassid (`LionRecord`, `ZebraRecord` jne) — loomade read andmebaasis.
+- `GroupRecord` — rühm (Savanna, Jungle, Water, Arctic).
+- `IDbContextFactory<ZooContext>` loob iga salvestamise ja laadimise jaoks uue konteksti.
+
+Salvestatakse looma **Id, tüüp, nimi, energia ja rühm**.
+
+### Teostuse valik DI kaudu
+
+Failis `appsettings.json` valitakse teostus:
+
+- `"Storage": "Ef"` — EF Core (`EfWorldStorage`)
+- `"Storage": "LocalDb"` — ADO.NET (`SqlWorldStorage`)
+- `"Storage": "File"` — JSON ja XML
+
+`App.xaml.cs` registreerib valitud teostuse. `MainViewModel` saab ainult `IWorldStorage` liidese. Valitud teostus on näha vahekaardil **Storage**.
+
+### Päriluse kaardistus: TPH
+
+Kasutasin **TPH** (Table Per Hierarchy) kaardistust: kõik loomad on ühes tabelis `Animals`. Veerg **Kind** (discriminator) näitab looma tüüpi.
+
+| Id | Kind | Name | Energy | GroupId |
+|---|---|---|---|---|
+| …01 | Lion | Alex | 45 | 1 |
+| …02 | Lion | Leo | 70 | 1 |
+| …03 | Penguin | Skipper | 80 | 2 |
+
+Valisin TPH, sest loomaliikidel ei ole oma eraldi välju — kõigil on Id, nimi, energia ja rühm. Üks tabel on kõige lihtsam ja päringud ei vaja JOIN-e. Laadimisel loob EF `Kind` väärtuse järgi õige klassi (näiteks `Lion` → `LionRecord`).
+
+Rühmad on eraldi tabelis `AnimalGroups`. Seos on üks-paljudele: ühes rühmas on mitu looma, välisvõti on `Animals.GroupId`. Rühma nimi on unikaalne ja rühma ei saa kustutada, kui selles on loomi (`DeleteBehavior.Restrict`).
+
+### Salvestamine ja laadimine
+
+- **Salvestamine on üks tehing:** `BeginTransactionAsync` → vanad loomad kustutatakse → uued loomad ja rühmad lisatakse → `CommitAsync`. Vea korral muudatusi ei salvestata ja andmebaasi jääb eelmine seis.
+- **Laadimine:** `AsNoTracking()` ja `Include(a => a.Group)` loevad loomad koos rühmaga. `WorldMapper` ja `AnimalFactory` loovad õiged loomatüübid, `ReplaceWorld` loob uued `Repository<T>` hoidlad ja taastab reaktsioonid.
+
+### Migratsioonid ja LocalDB seadistamine
+
+**Eeldus:** SQL Server Express LocalDB (Visual Studio Installer → Individual components → *SQL Server Express LocalDB*).
+
+Andmebaas: `CrazyZooEfDb` (ühendus on failis `appsettings.json`, väli `EfConnectionString`).
+
+Andmebaasi loomine Visual Studio terminalis (**Vaade → Terminal**) lahenduse kaustas:
+
+    dotnet tool restore
+    cd CrazyZoo.Core
+    dotnet ef database update
+
+Migratsioon `InitialCreate` asub kaustas `CrazyZoo.Core/Migrations`. Klass `DesignFactory` annab `dotnet ef` tööriistale ühenduse andmebaasiga.
+
+Uue migratsiooni loomine pärast mudeli muutmist:
+
+    dotnet ef migrations add <Nimi>
+    dotnet ef database update
+
+### SOLID: enne ja pärast (S — üks vastutusala)
+
+**Enne:** `MainViewModel` lõi loomi ise `switch`-lausega ja kontrollis energiat 0–100. Sama `switch` oli ka `WorldMapper`-is.
+
+```csharp
+private bool CanAddAnimal()
+{
+    return AnimalTypes.Contains(SelectedType)
+        && !string.IsNullOrWhiteSpace(AnimalName)
+        && int.TryParse(EnergyText, out int energy)
+        && energy >= 0
+        && energy <= 100;
+}
+
+Animal animal = SelectedType switch
+{
+    "Lion" => new Lion(name, energy),
+    "Zebra" => new Zebra(name, energy),
+    ...
+};
+```
+
+**Pärast:** loomade loomine on ühes kohas — `AnimalFactory` (Core). Energia reeglit kontrollib ainult `Animal`. ViewModel kuvab vea logis.
+
+```csharp
+try
+{
+    animal = AnimalFactory.Create(SelectedType, AnimalName, int.Parse(EnergyText));
+    animal.MoveToGroup(SelectedGroup);
+}
+catch (ArgumentException ex)
+{
+    LogMessages.Add($"Animal was not added: {ex.Message}");
+    return;
+}
+```
+
+Uue loomaliigi lisamisel muutub ainult `AnimalFactory`, mitte ViewModel.
+
+### DDD
+
+- **Domeenireegel:** looma energia on alati 0–100. Seda kaitseb `Animal`: konstruktor kontrollib väärtust, `Energy` on `private set` ja energia muutub ainult meetoditega `TryUseEnergy` ja `ChangeEnergy`.
+- **Entity:** `Animal` — tal on `Id` (Guid). Energia ja rühm muutuvad, kuid Id jääb samaks: see on sama loom.
+- **Value Object:** `AnimalSnapshot` (`record`) — võrreldakse sisu järgi (nimi, tüüp, energia), Id-d tal ei ole.
+- **Agregaat:** `Animal` on oma agregaadi juur. Energiat ja rühma saab muuta ainult tema meetoditega (`TryUseEnergy`, `MoveToGroup`).
+- `MainViewModel` ei sisalda SQL-i, EF-i seadistust ega domeenireegli koopiat.
+
+### Käivitusjuhend
+
+1. Loo andmebaas (vt *Migratsioonid ja LocalDB seadistamine*).
+2. Käivita `CrazyZoo.WpfApp` (Ctrl + F5). Vahekaardil **Storage** on `EfWorldStorage`.
+3. Lisa Lion Alex (60), Lion Leo (70) ja Penguin Skipper (80). Tee Alexiga **Crazy action** ja vii Skipper rühma **Water**.
+4. Vajuta **Save world**, sulge rakendus, käivita uuesti ja vajuta **Load world** — taastuvad samad Id-d, tüübid, energia ja rühmad.
+5. Tee Alexiga **Crazy action** — Leo reageerib (hoidlad ja reaktsioonid on taastatud).
+6. Lisa loom energiaga 120 — logis kuvatakse viga ja looma ei lisata.
+7. Muuda `appsettings.json` failis `"Storage": "LocalDb"` — käivitamisel kasutatakse ADO.NET teostust `SqlWorldStorage`.
+
+
+
+
+

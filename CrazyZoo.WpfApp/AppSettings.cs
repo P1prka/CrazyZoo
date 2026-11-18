@@ -9,6 +9,9 @@ public class AppSettings
     public string ConnectionString { get; set; } =
         @"Server=(localdb)\MSSQLLocalDB;Database=CrazyZooDb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;";
 
+    public string EfConnectionString { get; set; } =
+        @"Server=(localdb)\MSSQLLocalDB;Database=CrazyZooEfDb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;";
+
     public static AppSettings Load()
     {
         string path = System.IO.Path.Combine(AppContext.BaseDirectory, "appsettings.json");
@@ -22,6 +25,3 @@ public class AppSettings
         return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
     }
 }
-
-
-

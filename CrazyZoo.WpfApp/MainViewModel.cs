@@ -33,12 +33,7 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<string> ReportLines { get; } = new();
     public ObservableCollection<string> WorldLines { get; } = new();
 
-    public string[] AnimalTypes { get; } =
-    {
-        "Lion", "Zebra", "Giraffe",
-        "Hippo", "Penguin", "Monkey",
-        "Fox", "Panda", "Elephant"
-    };
+    public string[] AnimalTypes { get; } = AnimalFactory.Types;
 
     public string[] SortOptions { get; } =
     {
@@ -342,9 +337,7 @@ public class MainViewModel : INotifyPropertyChanged
     {
         return AnimalTypes.Contains(SelectedType)
             && !string.IsNullOrWhiteSpace(AnimalName)
-            && int.TryParse(EnergyText, out int energy)
-            && energy >= 0
-            && energy <= 100;
+            && int.TryParse(EnergyText, out _);
     }
 
     private void AddAnimal()
@@ -354,24 +347,18 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        string name = AnimalName.Trim();
-        int energy = int.Parse(EnergyText);
+        Animal animal;
 
-        Animal animal = SelectedType switch
+        try
         {
-            "Lion" => new Lion(name, energy),
-            "Zebra" => new Zebra(name, energy),
-            "Giraffe" => new Giraffe(name, energy),
-            "Hippo" => new Hippo(name, energy),
-            "Penguin" => new Penguin(name, energy),
-            "Monkey" => new Monkey(name, energy),
-            "Fox" => new Fox(name, energy),
-            "Panda" => new Panda(name, energy),
-            "Elephant" => new Elephant(name, energy),
-            _ => throw new InvalidOperationException("Unknown animal type.")
-        };
-
-        animal.MoveToGroup(SelectedGroup);
+            animal = AnimalFactory.Create(SelectedType, AnimalName, int.Parse(EnergyText));
+            animal.MoveToGroup(SelectedGroup);
+        }
+        catch (ArgumentException ex)
+        {
+            LogMessages.Add($"Animal was not added: {ex.Message}");
+            return;
+        }
 
         AddToRepository(animal);
 

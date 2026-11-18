@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using CrazyZoo.Core;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CrazyZoo.WpfApp;
@@ -25,7 +26,14 @@ public partial class App : Application
         ServiceCollection services = new();
         services.AddSingleton(settings);
 
-        if (settings.Storage == "LocalDb")
+        if (settings.Storage == "Ef")
+        {
+            services.AddDbContextFactory<ZooContext>(options =>
+                options.UseSqlServer(settings.EfConnectionString));
+            services.AddSingleton<IWorldStorage, EfWorldStorage>();
+            services.AddSingleton<IPathService, DatabasePathService>();
+        }
+        else if (settings.Storage == "LocalDb")
         {
             services.AddSingleton<IWorldStorage>(
                 _ => new SqlWorldStorage(settings.ConnectionString));
@@ -51,9 +59,3 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
-
-
-
-
-
-
